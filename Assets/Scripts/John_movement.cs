@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class John_movement : MonoBehaviour
@@ -7,10 +8,12 @@ public class John_movement : MonoBehaviour
     private Rigidbody2D Rigidbody2D;
     private Animator Animator;
     private float Horizontal;
+    public GameObject BulletPrefab;
 
     public float Speed;
     public float JumpForce;
     private bool Grounded;
+    private float LastShoot;
 
     void Start()
     {
@@ -20,34 +23,55 @@ public class John_movement : MonoBehaviour
     }
 
 
-    void Update()
+    private void Update()
     {
+        // Movimiento
         Horizontal = Input.GetAxisRaw("Horizontal");
 
-        if(Horizontal <0.0f) transform.localScale = new Vector3(-1.0f, 1.0f, 1.0f);
-        else if(Horizontal > 0.0f) transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-       
+        if (Horizontal < 0.0f) transform.localScale = new Vector3(-1.0f, 1.0f, 1.0f);
+        else if (Horizontal > 0.0f) transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+
         Animator.SetBool("running", Horizontal != 0.0f);
-        
-        if(Physics2D.Raycast(transform.position, Vector3.down, 0.1f))
+
+        // Detectar Suelo
+        // Debug.DrawRay(transform.position, Vector3.down * 0.1f, Color.red);
+        if (Physics2D.Raycast(transform.position, Vector3.down, 0.1f))
         {
             Grounded = true;
         }
         else Grounded = false;
 
-        if(Input.GetKeyDown(KeyCode.W) && Grounded)
+        // Salto
+        if (Input.GetKeyDown(KeyCode.W) && Grounded)
         {
             Jump();
         }
-        
+
+        // Disparar
+        if (Input.GetKey(KeyCode.K) && Time.time > LastShoot + 0.25f)
+        {
+            Shoot();
+            LastShoot = Time.time;
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        Rigidbody2D.velocity = new Vector2(Horizontal * Speed, Rigidbody2D.velocity.y);
     }
 
     private void Jump()
     {
         Rigidbody2D.AddForce(Vector2.up * JumpForce);
     }
-    private void FixedUpdate()
+
+    private void Shoot()
     {
-        Rigidbody2D.velocity = new Vector2(Horizontal, Rigidbody2D.velocity.y);
+        Vector3 direction;
+        if (transform.localScale.x == 1.0f) direction = Vector3.right;
+        else direction = Vector3.left;
+
+        GameObject bullet = Instantiate(BulletPrefab, transform.position + direction * 0.1f, Quaternion.identity);
+        bullet.GetComponent<BulletScript>().SetDirection(direction);
     }
 }
