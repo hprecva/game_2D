@@ -48,7 +48,7 @@ public class John_movement : MonoBehaviour
         }
 
         // Disparar
-        if (Input.GetKey(KeyCode.K) && Time.time > LastShoot + 0.25f)
+        if (Input.GetKey(KeyCode.Space) && Time.time > LastShoot + 0.25f)
         {
             Shoot();
             LastShoot = Time.time;
